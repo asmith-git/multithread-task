@@ -20,6 +20,12 @@
 #include "task_interface.hpp"
 
 namespace as {
+
+	class task_controller {
+	public:
+		virtual ~task_controller() {}
+	};
+
 	class task_dispatcher {
 	public:
 		typedef std::shared_ptr<task_interface> task_ptr;
