@@ -1,3 +1,5 @@
+#ifndef ASMITH_TASK_DISPATCHER_HPP
+#define ASMITH_TASK_DISPATCHER_HPP
 
 // Copyright 2017 Adam Smith
 // 
