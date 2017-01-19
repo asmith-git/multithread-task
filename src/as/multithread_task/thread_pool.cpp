@@ -40,7 +40,6 @@ namespace as {
 
 	void thread_pool::schedule_task(task_ptr aTask) {
 		mTasksLock.lock();
-		task_ptr task = mTasks.front();
 		mTasks.push_back(aTask);
 		//! \todo Notify a worker thread that a task has been added
 		mTasksLock.unlock();
@@ -52,10 +51,13 @@ namespace as {
 			//! \todo Wait for a task to be added
 			//if(mExit) break;
 			mTasksLock.lock();
-			task_ptr task = mTasks.front();
-			mTasks.pop_front();
+			task_ptr task;
+			if(! mTasks.empty()) {
+				task = mTasks.front();
+				mTasks.pop_front();
+			}
 			mTasksLock.unlock();
-			task->execute(controller);
+			if(task) task->execute(controller);
 		}
 	}
 
