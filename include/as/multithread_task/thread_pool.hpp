@@ -19,11 +19,13 @@
 #include <vector>
 #include <deque>
 #include <thread>
+#include <condition_variable>
 #include "task_dispatcher.hpp"
 
 namespace as {
 	class thread_pool : public task_dispatcher {
 	private:
+		std::condition_variable mTaskScheduled;
 		std::vector<std::thread> mThreads;
 		std::deque<task_ptr> mTasks;
 		std::mutex mTasksLock;

@@ -34,30 +34,51 @@ namespace as {
 
 	thread_pool::~thread_pool() {
 		mExit = true;
-		//! \todo Notify all worker threads waiting for tasks
+		mTaskScheduled.notify_all();
 		for(std::thread& i : mThreads) i.join();
 	}
 
 	void thread_pool::schedule_task(task_ptr aTask) {
+		// Add the task to the queue
 		mTasksLock.lock();
 		mTasks.push_back(aTask);
-		//! \todo Notify a worker thread that a task has been added
 		mTasksLock.unlock();
+
+		// Notify a waiting worker that a task has been added
+		mTaskScheduled.notify_one();
 	}
 
 	void thread_pool::worker_function() {
 		task_controller controller;
 		while(! mExit) {
-			//! \todo Wait for a task to be added
-			//if(mExit) break;
-			mTasksLock.lock();
+			// Wait for task to be added
+			{
+				std::unique_lock<std::mutex> lock(mTasksLock);
+				mTaskScheduled.wait(lock);
+			}
+			if(mExit) break;
+
+			// Execute the task
 			task_ptr task;
-			if(! mTasks.empty()) {
+			mTasksLock.lock();
+			if (!mTasks.empty()) {
 				task = mTasks.front();
 				mTasks.pop_front();
 			}
 			mTasksLock.unlock();
 			if(task) task->execute(controller);
+
+			// Check if there are more tasks before waiting again
+			do {
+				task.swap(task_ptr());
+				mTasksLock.lock();
+				if(! mTasks.empty()) {
+					task = mTasks.front();
+					mTasks.pop_front();
+				}
+				mTasksLock.unlock();
+				if(task) task->execute(controller);
+			}while(task);
 		}
 	}
 
