@@ -20,14 +20,16 @@ namespace as {
 	thread_pool::thread_pool() :
 		mExit(false)
 	{
-		//! \todo Add as many threads as there are CPU cores
-		mThreads.push_back(std::thread(&thread_pool::worker_function, this));
+		// Create a worker thread for each CPU core
+		const size_t cores = std::thread::hardware_concurrency();
+		for (size_t i = 0; i < cores; ++i) mThreads.push_back(std::thread(&thread_pool::worker_function, this));
 	}
 
 	thread_pool::thread_pool(size_t aThreads) :
 		mExit(false)
 	{
-		//! \todo Add as many threads as in aThreads
+		// Create worker threads
+		for(size_t i = 0; i < aThreads; ++i) mThreads.push_back(std::thread(&thread_pool::worker_function, this));
 	}
 
 	thread_pool::~thread_pool() {
