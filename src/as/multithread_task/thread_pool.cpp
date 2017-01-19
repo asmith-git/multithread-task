@@ -17,20 +17,44 @@
 namespace as {
 	// thread_pool
 
-	thread_pool::thread_pool() {
-		//!\todo Implement
+	thread_pool::thread_pool() :
+		mExit(false)
+	{
+		//! \todo Add as many threads as there are CPU cores
+		mThreads.push_back(std::thread(&thread_pool::worker_function, this));
 	}
 
-	thread_pool::thread_pool(size_t aThreads) {
-		//!\todo Implement
+	thread_pool::thread_pool(size_t aThreads) :
+		mExit(false)
+	{
+		//! \todo Add as many threads as in aThreads
 	}
 
 	thread_pool::~thread_pool() {
-		//!\todo Implement
+		mExit = true;
+		//! \todo Notify all worker threads waiting for tasks
+		for(std::thread& i : mThreads) i.join();
 	}
 
 	void thread_pool::schedule_task(task_ptr aTask) {
-		//!\todo Implement
+		mTasksLock.lock();
+		task_ptr task = mTasks.front();
+		mTasks.push_back(aTask);
+		//! \todo Notify a worker thread that a task has been added
+		mTasksLock.unlock();
+	}
+
+	void thread_pool::worker_function() {
+		task_controller controller;
+		while(! mExit) {
+			//! \todo Wait for a task to be added
+			//if(mExit) break;
+			mTasksLock.lock();
+			task_ptr task = mTasks.front();
+			mTasks.pop_front();
+			mTasksLock.unlock();
+			task->execute(controller);
+		}
 	}
 
 }

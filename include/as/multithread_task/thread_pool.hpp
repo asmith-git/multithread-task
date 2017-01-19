@@ -15,10 +15,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <mutex>
+#include <vector>
+#include <deque>
+#include <thread>
 #include "task_dispatcher.hpp"
 
 namespace as {
 	class thread_pool : public task_dispatcher {
+	private:
+		std::vector<std::thread> mThreads;
+		std::deque<task_ptr> mTasks;
+		std::mutex mTasksLock;
+		bool mExit;
+	private:
+		void worker_function();
 	protected:
 		// Inherited from task_dispatcher
 		void schedule_task(task_ptr) override;
