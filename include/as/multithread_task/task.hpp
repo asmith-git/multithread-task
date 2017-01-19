@@ -25,6 +25,12 @@ namespace as {
 		std::promise<T> mPromise;
 	protected:
 		virtual T execute_for_return(task_controller&) = 0;
+
+		// Inherited from task_interface
+
+		void* get_promise() override {
+			return &mPromise;
+		}
 	public:
 		virtual ~task() {}
 
@@ -37,10 +43,6 @@ namespace as {
 				mPromise.set_exception(std::current_exception());
 			}
 		}
-
-		void* get_promise() override {
-			return &mPromise;
-		}
 	};
 
 	template<>
@@ -49,6 +51,12 @@ namespace as {
 		std::promise<void> mPromise;
 	protected:
 		virtual void execute_for_return(task_controller&) = 0;
+
+		// Inherited from task_interface
+
+		void* get_promise() override {
+			return &mPromise;
+		}
 	public:
 		virtual ~task() {}
 
@@ -61,10 +69,6 @@ namespace as {
 			}catch (std::exception& e) {
 				mPromise.set_exception(std::current_exception());
 			}
-		}
-
-		void* get_promise() override {
-			return &mPromise;
 		}
 	};
 }

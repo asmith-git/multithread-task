@@ -1,5 +1,3 @@
-#ifndef ASMITH_TASK_INTERFACE_HPP
-#define ASMITH_TASK_INTERFACE_HPP
 
 // Copyright 2017 Adam Smith
 // 
@@ -15,18 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace as {
-	class task_controller;
-	class task_dispatcher;
+#include <memory>
+#include <future>
+#include "task_interface.hpp"
 
-	class task_interface {
+namespace as {
+	class task_dispatcher {
 	public:
-		friend class task_dispatcher;
+		typedef std::shared_ptr<task_interface> task_ptr;
 	protected:
-		virtual void* get_promise() = 0;
+		virtual void schedule_task(task_ptr) = 0;
 	public:
-		virtual ~task_interface() {}
-		virtual void execute(task_controller&) = 0;
+		virtual ~task_dispatcher() {}
+
+		template<class R>
+		std::future<R> schedule(task_ptr aTask) {
+			schedule_task(aTask);
+			return static_cast<std::promise<R>*>(aTask->get_promise())->get_future();
+		}
 	};
 }
 
