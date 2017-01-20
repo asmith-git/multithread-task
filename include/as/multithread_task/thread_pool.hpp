@@ -29,6 +29,7 @@ namespace as {
 		std::vector<std::thread> mThreads;
 		std::deque<task_ptr> mTasks[PRIORITY_HIGH + 1];
 		std::mutex mTasksLock;
+		priority mHighPriority;
 		bool mExit;
 	private:
 		void worker_function();

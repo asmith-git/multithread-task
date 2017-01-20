@@ -18,6 +18,7 @@ namespace as {
 	// thread_pool
 
 	thread_pool::thread_pool() :
+		mHighPriority(PRIORITY_LOW),
 		mExit(false)
 	{
 		// Create a worker thread for each CPU core
@@ -26,6 +27,7 @@ namespace as {
 	}
 
 	thread_pool::thread_pool(size_t aThreads) :
+		mHighPriority(PRIORITY_LOW),
 		mExit(false)
 	{
 		// Create worker threads
@@ -41,6 +43,7 @@ namespace as {
 	void thread_pool::schedule_task(task_ptr aTask, priority aPriority) {
 		// Add the task to the queue
 		mTasksLock.lock();
+		mHighPriority = aPriority > mHighPriority ? aPriority : mHighPriority;
 		mTasks[aPriority].push_back(aTask);
 		mTasksLock.unlock();
 
@@ -50,7 +53,8 @@ namespace as {
 
 	void thread_pool::worker_function() {
 		const auto pop_task = [this]()->task_ptr {
-			for(int i = PRIORITY_HIGH; i >= 0; --i) {
+			for(int i = mHighPriority; i >= 0; --i) {
+				mHighPriority = static_cast<priority>(i);
 				if(! mTasks[i].empty()) {
 					task_ptr tmp = mTasks[i].front();
 					mTasks[i].pop_front();
