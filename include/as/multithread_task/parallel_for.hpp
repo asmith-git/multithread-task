@@ -145,8 +145,16 @@ namespace as {
 			aFunction,
 			aBlocks,
 			aPriority,
-			[](int i)->int { return 0; }, //! \todo Implement
-			[](int i)->int { return 0; } //! \todo Implement
+			[=](int i)->int {
+				const int range = aMax - aMin;
+				const int sub_range = range / aBlocks;
+				return i == 0 ? aMin : aMin + (sub_range * i) + 1;
+			},
+			[=](int i)->int {
+				const int range = aMax - aMin;
+				const int sub_range = range / aBlocks;
+				return i + 1 == aBlocks ? aMax : sub_range * (i + 1);
+			}
 		);
 	}
 
