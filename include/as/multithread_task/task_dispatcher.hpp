@@ -29,9 +29,9 @@ namespace as {
 	class task_dispatcher {
 	public:
 		enum priority {
-			PRIORITY_LOW,
-			PRIORITY_MEDIUM,
-			PRIORITY_HIGH
+			PRIORITY_LOW		= 0,
+			PRIORITY_HIGH		= 5,
+			PRIORITY_MEDIUM		= PRIORITY_HIGH / 2
 		};
 		typedef std::shared_ptr<task_interface> task_ptr;
 	protected:
