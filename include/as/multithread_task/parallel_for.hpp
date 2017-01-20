@@ -160,7 +160,6 @@ namespace as {
 
 	template<class F>
 	void parallel_for_greater_than(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		//! \todo Fix bug with last block not executing
 		implementation::parallel_for<F, implementation::for_greater_than_task<F>>(
 			aDispatcher,
 			aMin,
@@ -176,7 +175,7 @@ namespace as {
 				[=](int i)->int {
 				const int range = aMin - aMax;
 				const int sub_range = range / aBlocks;
-				return aMin - (sub_range * (i + 1));
+				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
 			}
 		);
 	}
@@ -190,8 +189,16 @@ namespace as {
 			aFunction,
 			aBlocks,
 			aPriority,
-			[](int i)->int { return 0; }, //! \todo Implement
-			[](int i)->int { return 0; } //! \todo Implement
+			[=](int i)->int {
+				const int range = aMin - aMax;
+				const int sub_range = range / aBlocks;
+				return i == 0 ? aMin : aMin - (sub_range * i) - 1;
+			},
+				[=](int i)->int {
+				const int range = aMin - aMax;
+				const int sub_range = range / aBlocks;
+				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
+			}
 		);
 	}
 }
