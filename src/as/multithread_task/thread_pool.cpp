@@ -41,7 +41,7 @@ namespace as {
 	void thread_pool::schedule_task(task_ptr aTask, priority aPriority) {
 		// Add the task to the queue
 		mTasksLock.lock();
-		mTasks.push_back(aTask);
+		mTasks[aPriority].push_back(aTask);
 		mTasksLock.unlock();
 
 		// Notify a waiting worker that a task has been added
@@ -49,6 +49,18 @@ namespace as {
 	}
 
 	void thread_pool::worker_function() {
+		const auto pop_task = [this]()->task_ptr {
+			for(int i = PRIORITY_HIGH; i >= 0; --i) {
+				if(! mTasks[i].empty()) {
+					task_ptr tmp = mTasks[i].front();
+					mTasks[i].pop_front();
+					return tmp;
+				}
+			}
+			return task_ptr();
+		};
+
+
 		task_controller controller;
 		while(! mExit) {
 			// Wait for task to be added
@@ -61,10 +73,7 @@ namespace as {
 			// Execute the task
 			task_ptr task;
 			mTasksLock.lock();
-			if (!mTasks.empty()) {
-				task = mTasks.front();
-				mTasks.pop_front();
-			}
+			task.swap(pop_task());
 			mTasksLock.unlock();
 			if(task) task->execute(controller);
 
@@ -72,10 +81,7 @@ namespace as {
 			do {
 				task.swap(task_ptr());
 				mTasksLock.lock();
-				if(! mTasks.empty()) {
-					task = mTasks.front();
-					mTasks.pop_front();
-				}
+				task.swap(pop_task());
 				mTasksLock.unlock();
 				if(task) task->execute(controller);
 			}while(task);
