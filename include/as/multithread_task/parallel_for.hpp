@@ -172,7 +172,7 @@ namespace as {
 				const I sub_range = range / aBlocks;
 				return aMin -(sub_range * i);
 			},
-				[=](I i)->I {
+			[=](I i)->I {
 				const I range = aMin - aMax;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
@@ -194,7 +194,7 @@ namespace as {
 				const I sub_range = range / aBlocks;
 				return i == 0 ? aMin : aMin - (sub_range * i) - 1;
 			},
-				[=](I i)->I {
+			[=](I i)->I {
 				const I range = aMin - aMax;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
