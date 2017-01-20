@@ -28,7 +28,7 @@ namespace as {
 
 	class task_dispatcher {
 	public:
-		enum priority {
+		enum priority : uint8_t {
 			PRIORITY_LOW		= 0,
 			PRIORITY_HIGH		= 5,
 			PRIORITY_MEDIUM		= PRIORITY_HIGH / 2
