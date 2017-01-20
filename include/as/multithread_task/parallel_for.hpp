@@ -96,15 +96,12 @@ namespace as {
 			{}
 		};
 
-		template<class F, class T>
-		void parallel_for_less(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks, task_dispatcher::priority aPriority) {
-			const int range = aMax - aMin;
-			const int sub_range = range / aBlocks;
-
+		template<class F, class T, class I, class I2>
+		void parallel_for(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks, task_dispatcher::priority aPriority, I aMinFn, I2 aMaxFn) {
 			std::future<void>* const futures = new std::future<void>[aBlocks];
 			try{
 				for(int i = 0; i < aBlocks; ++i) {
-					task_dispatcher::task_ptr task(new T(aMin + (sub_range * i), i + 1 == aBlocks ? aMax : sub_range * (i + 1), aFunction));
+					task_dispatcher::task_ptr task(new T(aMinFn(i), aMaxFn(i), aFunction));
 					futures[i] = aDispatcher.schedule<void>(task, aPriority);
 				}
 				for(int i = 0; i < aBlocks; ++i) futures[i].get();
@@ -115,58 +112,69 @@ namespace as {
 
 			delete[] futures;
 		}
-
-		template<class F, class T>
-		void parallel_for_greater(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks, task_dispatcher::priority aPriority) {
-			//! \todo Implement
-		}
 	}
 
 	template<class F>
 	void parallel_for_less_than(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for_less< F, implementation::for_less_than_task<F>>(
+		implementation::parallel_for<F, implementation::for_less_than_task<F>>(
 			aDispatcher,
 			aMin,
 			aMax,
 			aFunction,
 			aBlocks,
-			aPriority
+			aPriority,
+			[=](int i)->int { 
+				const int range = aMax - aMin;
+				const int sub_range = range / aBlocks;
+				return aMin + (sub_range * i);
+			},
+			[=](int i)->int {
+				const int range = aMax - aMin;
+				const int sub_range = range / aBlocks;
+				return i + 1 == aBlocks ? aMax : sub_range * (i + 1);
+			}
 		);
 	}
 
 	template<class F>
 	void parallel_for_less_than_equals(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for_less< F, implementation::for_less_than_equals_task<F>>(
+		implementation::parallel_for<F, implementation::for_less_than_equals_task<F>>(
 			aDispatcher,
 			aMin,
 			aMax,
 			aFunction,
 			aBlocks,
-			aPriority
+			aPriority,
+			[](int i)->int { return 0; }, //! \todo Implement
+			[](int i)->int { return 0; } //! \todo Implement
 		);
 	}
 
 	template<class F>
 	void parallel_for_greater_than(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for_greater< F, implementation::for_greater_than_task<F>>(
+		implementation::parallel_for<F, implementation::for_greater_than_task<F>>(
 			aDispatcher,
 			aMin,
 			aMax,
 			aFunction,
 			aBlocks,
-			aPriority
+			aPriority,
+			[](int i)->int { return 0; }, //! \todo Implement
+			[](int i)->int { return 0; } //! \todo Implement
 		);
 	}
 
 	template<class F>
 	void parallel_for_greater_than_equals(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for_greater< F, implementation::for_greater_than_equals_task<F>>(
+		implementation::parallel_for<F, implementation::for_greater_than_equals_task<F>>(
 			aDispatcher,
 			aMin,
 			aMax,
 			aFunction,
 			aBlocks,
-			aPriority
+			aPriority,
+			[](int i)->int { return 0; }, //! \todo Implement
+			[](int i)->int { return 0; } //! \todo Implement
 		);
 	}
 }
