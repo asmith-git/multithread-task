@@ -34,7 +34,7 @@ namespace as {
 		void worker_function();
 	protected:
 		// Inherited from task_dispatcher
-		void schedule_task(task_ptr) override;
+		void schedule_task(task_ptr, priority) override;
 	public:
 		thread_pool();
 		thread_pool(size_t);

@@ -38,7 +38,7 @@ namespace as {
 		for(std::thread& i : mThreads) i.join();
 	}
 
-	void thread_pool::schedule_task(task_ptr aTask) {
+	void thread_pool::schedule_task(task_ptr aTask, priority aPriority) {
 		// Add the task to the queue
 		mTasksLock.lock();
 		mTasks.push_back(aTask);

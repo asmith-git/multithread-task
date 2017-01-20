@@ -28,15 +28,20 @@ namespace as {
 
 	class task_dispatcher {
 	public:
+		enum priority {
+			PRIORITY_LOW,
+			PRIORITY_MEDIUM,
+			PRIORITY_HIGH
+		};
 		typedef std::shared_ptr<task_interface> task_ptr;
 	protected:
-		virtual void schedule_task(task_ptr) = 0;
+		virtual void schedule_task(task_ptr, priority) = 0;
 	public:
 		virtual ~task_dispatcher() {}
 
 		template<class R>
-		std::future<R> schedule(task_ptr aTask) {
-			schedule_task(aTask);
+		std::future<R> schedule(task_ptr aTask, priority aPriority = PRIORITY_MEDIUM) {
+			schedule_task(aTask, aPriority);
 			return static_cast<std::promise<R>*>(aTask->get_promise())->get_future();
 		}
 	};
