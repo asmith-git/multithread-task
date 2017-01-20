@@ -98,22 +98,24 @@ namespace as {
 
 		template<class F, class T>
 		void parallel_for_less(task_dispatcher& aDispatcher, int aMin, int aMax, F aFunction, int aBlocks, task_dispatcher::priority aPriority) {
-			const int range = aMax - aMin;
-			const int sub_range = range / aBlocks;
+			//! \todo Implement
 
-			std::future<void>* const futures = new std::future<void>[aBlocks];
-			try{
-				for(int i = 0; i < aBlocks; ++i) {
-					task_dispatcher::task_ptr task(new T(sub_range * i, i + 1 == aBlocks ? aMax : sub_range * (i + 1), aFunction));
-					futures[i] = aDispatcher.schedule<void>(task, aPriority);
-				}
-				for(int i = 0; i < aBlocks; ++i) futures[i].get();
-			}catch (std::exception& e) {
-				delete[] futures;
-				throw e;
-			}
+			//const int range = aMax - aMin;
+			//const int sub_range = range / aBlocks;
 
-			delete[] futures;
+			//std::future<void>* const futures = new std::future<void>[aBlocks];
+			//try{
+			//	for(int i = 0; i < aBlocks; ++i) {
+			//		task_dispatcher::task_ptr task(new T(sub_range * i, i + 1 == aBlocks ? aMax : sub_range * (i + 1), aFunction));
+			//		futures[i] = aDispatcher.schedule<void>(task, aPriority);
+			//	}
+			//	for(int i = 0; i < aBlocks; ++i) futures[i].get();
+			//}catch (std::exception& e) {
+			//	delete[] futures;
+			//	throw e;
+			//}
+
+			//delete[] futures;
 		}
 
 		template<class F, class T>
