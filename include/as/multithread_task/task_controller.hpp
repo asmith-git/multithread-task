@@ -1,5 +1,5 @@
-#ifndef ASMITH_TASK_INTERFACE_HPP
-#define ASMITH_TASK_INTERFACE_HPP
+#ifndef ASMITH_TASK_CONTROLLER_HPP
+#define ASMITH_TASK_CONTROLLER_HPP
 
 // Copyright 2017 Adam Smith
 // 
@@ -15,34 +15,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <cstdint>
+#include "task_dispatcher.hpp"
 
 namespace as {
-	class task_controller;
-
-	class task_interface {
-	public:
-		friend task_controller;
-
-		enum state {
-			STATE_INITIALISED,
-			STATE_EXECUTING,
-			STATE_PAUSED,
-			STATE_COMPLETE
-		};
-	private:
-		state mState;
-		uint8_t mPauseLocation;
+	class task_controller {
 	protected:
-		//virtual void on_queue(task_controller&, uint8_t) = 0;
-		virtual void on_execute(task_controller&) = 0;
-		virtual void on_resume(task_controller&, uint8_t) = 0;
-		virtual void* get_promise() = 0;
+		virtual bool on_pause(task_interface&) throw() = 0;
+		virtual bool on_cancel(task_interface&) throw() = 0;
+		virtual bool on_reschedule(task_interface&, task_dispatcher::priority) throw() = 0;
 	public:
-		task_interface();
-		virtual ~task_interface();
-
-		state get_state() const;
+		virtual ~task_controller();
+		
+		void execute(task_interface&) throw();
+		bool pause(task_interface&, uint8_t) throw();
+		bool cancel(task_interface&) throw();
+		bool reschedule(task_interface&, task_dispatcher::priority) throw();
 	};
 }
 

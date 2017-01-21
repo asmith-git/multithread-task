@@ -20,12 +20,6 @@
 #include "task_interface.hpp"
 
 namespace as {
-
-	class task_controller {
-	public:
-		virtual ~task_controller() {}
-	};
-
 	class task_dispatcher {
 	public:
 		enum priority : uint8_t {

@@ -19,12 +19,15 @@
 #include "task_interface.hpp"
 
 namespace as {
+
 	template<class T>
-	class task : public task_interface {
+	class task : public task_interface{
 	private:
 		std::promise<T> mPromise;
 	protected:
-		virtual T execute_for_return(task_controller&) = 0;
+		void set_return(const T& aValue) {
+			mPromise.set_value(aValue);
+		}
 
 		// Inherited from task_interface
 
@@ -33,16 +36,6 @@ namespace as {
 		}
 	public:
 		virtual ~task() {}
-
-		// Inherited from task_interface
-
-		void execute(task_controller& aController) override {
-			try{
-				mPromise.set_value(execute_for_return(aController));
-			}catch(std::exception& e) {
-				mPromise.set_exception(std::current_exception());
-			}
-		}
 	};
 
 	template<>
@@ -50,7 +43,9 @@ namespace as {
 	private:
 		std::promise<void> mPromise;
 	protected:
-		virtual void execute_for_return(task_controller&) = 0;
+		void set_return() {
+			mPromise.set_value();
+		}
 
 		// Inherited from task_interface
 
@@ -59,17 +54,6 @@ namespace as {
 		}
 	public:
 		virtual ~task() {}
-
-		// Inherited from task_interface
-
-		void execute(task_controller& aController) override {
-			try{
-				execute_for_return(aController);
-				mPromise.set_value();
-			}catch (std::exception& e) {
-				mPromise.set_exception(std::current_exception());
-			}
-		}
 	};
 }
 
