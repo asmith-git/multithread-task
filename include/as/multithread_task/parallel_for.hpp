@@ -28,8 +28,13 @@ namespace as {
 			const F mFunction;
 		protected:
 			// Inherited from task
-			void execute_for_return(task_controller&) override {
-				for (I i = mMin; i < mMax; ++i) mFunction(i);
+			void on_execute(task_controller&) override {
+				for(I i = mMin; i < mMax; ++i) mFunction(i);
+				set_return();
+			}
+
+			void on_resume(as::task_controller& aController, uint8_t) override {
+				on_execute(aController);
 			}
 		public:
 			for_less_than_task(I aMin, I aMax, F aFunction) :
@@ -47,8 +52,13 @@ namespace as {
 			const F mFunction;
 		protected:
 			// Inherited from task
-			void execute_for_return(task_controller&) override {
-				for (I i = mMin; i <= mMax; ++i) mFunction(i);
+			void on_execute(task_controller&) override {
+				for(I i = mMin; i <= mMax; ++i) mFunction(i);
+				set_return();
+			}
+
+			void on_resume(as::task_controller& aController, uint8_t) override {
+				on_execute(aController);
 			}
 		public:
 			for_less_than_equals_task(I aMin, I aMax, F aFunction) :
@@ -66,8 +76,13 @@ namespace as {
 			const F mFunction;
 		protected:
 			// Inherited from task
-			void execute_for_return(task_controller&) override {
-				for (I i = mMin; i > mMax; --i) mFunction(i);
+			void on_execute(task_controller&) override {
+				for(I i = mMin; i > mMax; --i) mFunction(i);
+				set_return();
+			}
+
+			void on_resume(as::task_controller& aController, uint8_t) override {
+				on_execute(aController);
 			}
 		public:
 			for_greater_than_task(I aMin, I aMax, F aFunction) :
@@ -85,8 +100,13 @@ namespace as {
 			const F mFunction;
 		protected:
 			// Inherited from task
-			void execute_for_return(task_controller&) override {
-				for (I i = mMin; i >= mMax; --i) mFunction(i);
+			void on_execute(task_controller&) override {
+				for(I i = mMin; i >= mMax; --i) mFunction(i);
+				set_return();
+			}
+
+			void on_resume(as::task_controller& aController, uint8_t) override {
+				on_execute(aController);
 			}
 		public:
 			for_greater_than_equals_task(I aMin, I aMax, F aFunction) :
