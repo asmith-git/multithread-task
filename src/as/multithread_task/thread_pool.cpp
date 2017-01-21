@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "as/multithread_task/thread_pool.hpp"
+#include "as/multithread_task/task_controller.hpp"
 
 namespace as {
 	// thread_pool
@@ -64,8 +65,47 @@ namespace as {
 			return task_ptr();
 		};
 
+		class controller_t : public task_controller {
+		private:
+			thread_pool& mPool;
+		protected:
+			// Inherited from task_controller
+			bool on_pause(task_interface& aTask) throw() override {
+				mPool.schedule<void>(aTask.shared_from_this(), PRIORITY_MEDIUM);
+				return false;
+			}
 
-		task_controller controller;
+			bool on_cancel(task_interface& aTask) throw() override {
+				const task_ptr ptr = aTask.shared_from_this();
+
+				mPool.mTasksLock.lock();
+				for(int i = mPool.mHighPriority; i >= 0; --i) {
+					auto end = mPool.mTasks[i].end();
+					for(auto j = mPool.mTasks[i].begin(); j != end; ++j) {
+						if(*j == ptr) {
+							mPool.mTasks[i].erase(j);
+							mPool.mTasksLock.unlock();
+							return true;
+						}
+					}
+				}
+				mPool.mTasksLock.unlock();
+				return false;
+			}
+
+			bool on_reschedule(task_interface& aTask, task_dispatcher::priority aPriority) throw()override {
+				if(! on_cancel(aTask)) return false;
+				mPool.schedule<void>(aTask.shared_from_this(), aPriority);
+				return true;
+			}
+		public:
+			controller_t(thread_pool& aPool) :
+				mPool(aPool)
+			{}
+		};
+
+		controller_t controller(*this);
+
 		while(! mExit) {
 			// Wait for task to be added
 			{
@@ -79,7 +119,7 @@ namespace as {
 			mTasksLock.lock();
 			task.swap(pop_task());
 			mTasksLock.unlock();
-			if(task) task->execute(controller);
+			if(task) controller.execute(*task);
 
 			// Check if there are more tasks before waiting again
 			do {
@@ -87,7 +127,7 @@ namespace as {
 				mTasksLock.lock();
 				task.swap(pop_task());
 				mTasksLock.unlock();
-				if(task) task->execute(controller);
+				if(task) controller.execute(*task);
 			}while(task);
 		}
 	}

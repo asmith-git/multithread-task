@@ -20,11 +20,10 @@
 #include <memory>
 
 namespace as {
-	class task_controller;
-
 	class task_interface : public std::enable_shared_from_this<task_interface> {
 	public:
-		friend task_controller;
+		friend class task_controller;
+		friend class task_dispatcher;
 
 		enum state {
 			STATE_INITIALISED,
