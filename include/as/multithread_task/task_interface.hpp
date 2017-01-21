@@ -19,13 +19,28 @@ namespace as {
 	class task_controller;
 	class task_dispatcher;
 
+	
 	class task_interface {
 	public:
 		friend class task_dispatcher;
 	protected:
+		/*!
+			\brief Return the address of the std::promise<?> object associated with the state of this task.
+			\detail The template type of the std::promise is dependant on the return type of the wrapperd function.
+			\return The address of the promise object.
+		*/
 		virtual void* get_promise() = 0;
 	public:
+		/*!
+			\brief Destroy the task.
+		*/
 		virtual ~task_interface() {}
+		
+		/*!
+			\brief Execute the task.
+			\param aControl The task_controller of the executing thread.
+			\see task_dispatcher
+		*/
 		virtual void execute(task_controller&) = 0;
 	};
 }
