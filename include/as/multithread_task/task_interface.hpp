@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <exception>
 #include <cstdint>
 
 namespace as {
@@ -38,6 +39,7 @@ namespace as {
 		virtual void on_execute(task_controller&) = 0;
 		virtual void on_resume(task_controller&, uint8_t) = 0;
 		virtual void* get_promise() = 0;
+		virtual void set_exception(std::exception_ptr) = 0;
 	public:
 		task_interface();
 		virtual ~task_interface();

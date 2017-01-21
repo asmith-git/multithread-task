@@ -34,6 +34,10 @@ namespace as {
 		void* get_promise() override {
 			return &mPromise;
 		}
+
+		void set_exception(std::exception_ptr aException) override {
+			mPromise.set_exception(aException);
+		}
 	public:
 		virtual ~task() {}
 	};
@@ -51,6 +55,10 @@ namespace as {
 
 		void* get_promise() override {
 			return &mPromise;
+		}
+
+		void set_exception(std::exception_ptr aException) override {
+			mPromise.set_exception(aException);
 		}
 	public:
 		virtual ~task() {}

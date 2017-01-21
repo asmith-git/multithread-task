@@ -24,17 +24,25 @@ namespace as {
 		switch(aTask.mState) {
 		case task_interface::STATE_INITIALISED:
 			try{
+				aTask.mState = task_interface::STATE_EXECUTING;
 				aTask.on_execute(*this);
+				// If the task hasn't been paused
+				if(aTask.mState == task_interface::STATE_EXECUTING) aTask.mState = task_interface::STATE_COMPLETE;
 			}catch(std::exception& e) {
-				//mPromise.set_exception(std::current_exception());
+				aTask.set_exception(std::current_exception());
+				aTask.mState = task_interface::STATE_COMPLETE;
 			}
 			break;
 		case task_interface::STATE_PAUSED:
 			try {
+				aTask.mState = task_interface::STATE_EXECUTING;
 				aTask.on_resume(*this, aTask.mPauseLocation);
+				// If the task hasn't been paused
+				if (aTask.mState == task_interface::STATE_EXECUTING) aTask.mState = task_interface::STATE_COMPLETE;
 			}
-			catch (std::exception& e) {
-				//mPromise.set_exception(std::current_exception());
+			catch(std::exception& e) {
+				aTask.set_exception(std::current_exception());
+				aTask.mState = task_interface::STATE_COMPLETE;
 			}
 			break;
 		}
