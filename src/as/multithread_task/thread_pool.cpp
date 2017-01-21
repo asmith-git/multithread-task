@@ -79,8 +79,10 @@ namespace as {
 		protected:
 			// Inherited from task_controller
 			bool on_pause(task_interface& aTask) throw() override {
-				mPool.schedule<void>(aTask.shared_from_this(), PRIORITY_LOW);
-				return false;
+				mPool.mTasksLock.lock();
+				mPool.mTasks[PRIORITY_LOW].push_back(aTask.shared_from_this());
+				mPool.mTasksLock.unlock();
+				return true;
 			}
 
 			bool on_cancel(task_interface& aTask) throw() override {
@@ -103,7 +105,10 @@ namespace as {
 
 			bool on_reschedule(task_interface& aTask, task_dispatcher::priority aPriority) throw()override {
 				if(! on_cancel(aTask)) return false;
-				mPool.schedule<void>(aTask.shared_from_this(), aPriority);
+				mPool.mTasksLock.lock();
+				mPool.mHighPriority = aPriority > mPool.mHighPriority ? aPriority : mPool.mHighPriority;
+				mPool.mTasks[aPriority].push_back(aTask.shared_from_this());
+				mPool.mTasksLock.unlock();
 				return true;
 			}
 		public:
