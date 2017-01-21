@@ -17,11 +17,12 @@
 
 #include <exception>
 #include <cstdint>
+#include <memory>
 
 namespace as {
 	class task_controller;
 
-	class task_interface {
+	class task_interface : public std::enable_shared_from_this<task_interface> {
 	public:
 		friend task_controller;
 
