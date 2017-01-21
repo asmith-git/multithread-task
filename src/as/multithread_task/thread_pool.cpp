@@ -55,10 +55,18 @@ namespace as {
 	void thread_pool::worker_function() {
 		const auto pop_task = [this]()->task_ptr {
 			for(int i = mHighPriority; i >= 0; --i) {
+				uint8_t non_resumed = 0;
 				mHighPriority = static_cast<priority>(i);
-				if(! mTasks[i].empty()) {
-					task_ptr tmp = mTasks[i].front();
+				if(non_resumed < mTasks[i].size()) {
+					task_ptr tmp;
+					GET_TASK:
+					tmp.swap(mTasks[i].front());
 					mTasks[i].pop_front();
+					if(tmp->get_state() == task_interface::STATE_PAUSED && ! tmp->should_resume()) {
+						mTasks[i].push_back(tmp);
+						++non_resumed;
+						goto GET_TASK;
+					}
 					return tmp;
 				}
 			}

@@ -29,4 +29,7 @@ namespace as {
 		return mState;
 	}
 
+	bool task_interface::should_resume() const {
+		return true;
+	}
 }

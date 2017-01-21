@@ -45,6 +45,7 @@ namespace as {
 		virtual ~task_interface();
 
 		state get_state() const;
+		virtual bool should_resume() const;
 	};
 }
 
