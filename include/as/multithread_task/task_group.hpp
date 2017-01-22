@@ -26,14 +26,14 @@ namespace as {
 			virtual ~task_wrapper() {}
 
 			virtual void wait() = 0;
-			virtual void wait_for(const std::chrono::milliseconds&) = 0;
-			virtual void wait_until(const std::chrono::milliseconds&) = 0;
+			virtual std::future_status wait_for(const std::chrono::milliseconds&) = 0;
+			virtual std::future_status wait_until(const std::chrono::milliseconds&) = 0;
 			virtual void set_future(void*) = 0;
 			virtual void set_return(void*) = 0;
+			virtual task_dispatcher::task_ptr get_task() const = 0;
 		};
 
-		std::vector<task_dispatcher::task_ptr> mTasks;
-		std::vector<std::shared_ptr<task_wrapper>> mTasks;
+		std::vector<std::shared_ptr<task_wrapper>> mWrappers;
 
 		std::future_status wait_for_ms(const std::chrono::milliseconds&);
 		std::future_status wait_until_ms(const std::chrono::milliseconds&);
