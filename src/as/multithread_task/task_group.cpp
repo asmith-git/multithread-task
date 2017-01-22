@@ -30,14 +30,22 @@ namespace as {
 		for(std::shared_ptr<task_wrapper>& i : mWrappers) i->schedule(aDispatcher, aPriority);
 	}
 
-	std::future_status task_group::wait_for_ms(const std::chrono::milliseconds& aDuration) {
-		//! \todo Implement
+	std::future_status task_group::wait_for_ms(std::chrono::milliseconds aDuration) {
+		while(aDuration.count() > 0) {
+			if(mWrappers.empty()) return std::future_status::ready;
+			const std::chrono::milliseconds oldTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+			const std::future_status tmp = mWrappers.back()->wait_for(aDuration);
+			if(tmp != std::future_status::ready) return tmp;
+			mWrappers.pop_back();
+			const std::chrono::milliseconds newTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+			aDuration -= newTime - oldTime;
+		}
 		return std::future_status::timeout;
 	}
 
-	std::future_status task_group::wait_until_ms(const std::chrono::milliseconds& aDuration) {
-		//! \todo Implement
-		return std::future_status::timeout;
+	std::future_status task_group::wait_until_ms(std::chrono::milliseconds aDuration) {
+		const std::chrono::milliseconds current = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+		return wait_for_ms(aDuration - current);
 	}
 
 

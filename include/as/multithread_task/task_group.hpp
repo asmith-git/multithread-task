@@ -107,8 +107,8 @@ namespace as {
 
 		std::vector<std::shared_ptr<task_wrapper>> mWrappers;
 
-		std::future_status wait_for_ms(const std::chrono::milliseconds&);
-		std::future_status wait_until_ms(const std::chrono::milliseconds&);
+		std::future_status wait_for_ms(std::chrono::milliseconds);
+		std::future_status wait_until_ms(std::chrono::milliseconds);
 	public:
 		~task_group();
 
