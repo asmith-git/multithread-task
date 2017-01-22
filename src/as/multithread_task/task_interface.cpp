@@ -55,4 +55,27 @@ namespace as {
 		// If the task hasn't been paused then it is now complete
 		if(mState == STATE_EXECUTING) mState = STATE_COMPLETE;
 	}
+
+	
+
+	bool task_interface::pause(task_controller& aController, uint8_t aLocation) throw() {
+		if(mState != task_interface::STATE_EXECUTING) return false;
+		if(aController.on_pause(*this)) {
+			mState = task_interface::STATE_PAUSED;
+			mPauseLocation = aLocation;
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	bool task_interface::cancel(task_controller& aController) throw() {
+		if(mState != task_interface::STATE_INITIALISED) return false;
+		return aController.on_cancel(*this);
+	}
+
+	bool task_interface::reschedule(task_controller& aController, implementation::task_priority aPriority) throw() {
+		if(mState != task_interface::STATE_INITIALISED) return false;
+		return aController.on_reschedule(*this, aPriority);
+	}
 }

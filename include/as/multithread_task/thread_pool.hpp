@@ -27,7 +27,7 @@ namespace as {
 	private:
 		std::condition_variable mTaskScheduled;
 		std::vector<std::thread> mThreads;
-		std::deque<task_ptr> mTasks[PRIORITY_HIGH + 1];
+		std::deque<task_ptr> mTasks[priority::PRIORITY_HIGH + 1];
 		std::mutex mTasksLock;
 		priority mHighPriority;
 		bool mExit;

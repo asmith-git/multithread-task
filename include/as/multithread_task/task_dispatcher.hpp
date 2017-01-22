@@ -22,11 +22,7 @@
 namespace as {
 	class task_dispatcher {
 	public:
-		enum priority : uint8_t {
-			PRIORITY_LOW		= 0,
-			PRIORITY_HIGH		= 5,
-			PRIORITY_MEDIUM		= PRIORITY_HIGH / 2
-		};
+		typedef implementation::task_priority priority;
 		typedef std::shared_ptr<task_interface> task_ptr;
 	protected:
 		virtual void schedule_task(task_ptr, priority) = 0;

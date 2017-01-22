@@ -102,7 +102,7 @@ namespace as {
 		~task_group();
 
 		void wait();
-		void schedule(task_dispatcher&, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM);
+		void schedule(task_dispatcher&, task_dispatcher::priority aPriority = task_dispatcher::priority::PRIORITY_MEDIUM);
 
 		template<class R, class P>
 		inline std::future_status wait_for(const std::chrono::duration<R,P>& aPeriod) {

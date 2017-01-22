@@ -19,16 +19,14 @@
 
 namespace as {
 	class task_controller {
+	public:
+		friend class task_interface;
 	protected:
 		virtual bool on_pause(task_interface&) throw() = 0;
 		virtual bool on_cancel(task_interface&) throw() = 0;
 		virtual bool on_reschedule(task_interface&, task_dispatcher::priority) throw() = 0;
 	public:
-		virtual ~task_controller();
-		
-		bool pause(task_interface&, uint8_t) throw();
-		bool cancel(task_interface&) throw();
-		bool reschedule(task_interface&, task_dispatcher::priority) throw();
+		virtual ~task_controller() {}
 	};
 }
 

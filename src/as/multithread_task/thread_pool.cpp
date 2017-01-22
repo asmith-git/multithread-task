@@ -19,7 +19,7 @@ namespace as {
 	// thread_pool
 
 	thread_pool::thread_pool() :
-		mHighPriority(PRIORITY_LOW),
+		mHighPriority(priority::PRIORITY_LOW),
 		mExit(false)
 	{
 		// Create a worker thread for each CPU core
@@ -28,7 +28,7 @@ namespace as {
 	}
 
 	thread_pool::thread_pool(size_t aThreads) :
-		mHighPriority(PRIORITY_LOW),
+		mHighPriority(priority::PRIORITY_LOW),
 		mExit(false)
 	{
 		// Create worker threads
@@ -80,7 +80,7 @@ namespace as {
 			// Inherited from task_controller
 			bool on_pause(task_interface& aTask) throw() override {
 				mPool.mTasksLock.lock();
-				mPool.mTasks[PRIORITY_LOW].push_back(aTask.shared_from_this());
+				mPool.mTasks[priority::PRIORITY_LOW].push_back(aTask.shared_from_this());
 				mPool.mTasksLock.unlock();
 				return true;
 			}

@@ -20,6 +20,14 @@
 #include <memory>
 
 namespace as {
+	namespace implementation {
+		enum task_priority : uint8_t {
+			PRIORITY_LOW = 0,
+			PRIORITY_HIGH = 5,
+			PRIORITY_MEDIUM = PRIORITY_HIGH / 2
+		};
+	}
+
 	/*!
 		\brief Base interface for implemented task-based parallel code.
 		\date 19th January 2017
@@ -46,6 +54,7 @@ namespace as {
 			If pausing is used then this function should simply call on_resume instead.
 			\param aController The controller for the dispatcher responsible for the current execution.
 			\see on_resume
+			\see pause
 		*/
 		virtual void on_execute(task_controller&) = 0;
 		
@@ -53,6 +62,7 @@ namespace as {
 			\brief Called when the task resumes execution from being paused.
 			\detail Implement the main behaviour of the function here if pauseing is used.
 			\param aController The controller for the dispatcher responsible for the current execution.
+			\see pause
 		*/
 		virtual void on_resume(task_controller&, uint8_t) = 0;
 		
@@ -66,6 +76,31 @@ namespace as {
 			\brief Pass a caught exception to the std::promise<?> object associated with this task's execution.
 		*/
 		virtual void set_exception(std::exception_ptr) = 0;
+
+		/*!
+			\brief Pause the current task.
+			\detail The calling function should immediately return after this call.
+			\param aController The controller for the dispatcher responsible for the current execution.
+			\param aLocation Identifies where to resume execution from.
+			\return True if the task was sucessfully paused.
+			\see on_resume
+		*/
+		bool pause(task_controller&, uint8_t) throw();
+
+		/*!
+			\brief Cancel a task that is queued but not yet executing.
+			\param aController The controller for the dispatcher responsible for the current execution.
+			\return True if the task was sucessfully canceled.
+		*/
+		bool cancel(task_controller&) throw();
+
+		/*!
+			\brief Reschedule a task that is queued but not yet executing with a different priority.
+			\param aController The controller for the dispatcher responsible for the current execution.
+			\param aPriority The new priority to be scheduled with.
+			\return True if the task was sucessfully rescheduled.
+		*/
+		bool reschedule(task_controller&, implementation::task_priority) throw();
 	public:
 		/*!
 			\brief Create a new task.
