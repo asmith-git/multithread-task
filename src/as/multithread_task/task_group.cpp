@@ -37,10 +37,11 @@ namespace as {
 			const std::future_status tmp = mWrappers.back()->wait_for(aDuration);
 			if(tmp != std::future_status::ready) return tmp;
 			mWrappers.pop_back();
-			const std::chrono::milliseconds newTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-			aDuration -= newTime - oldTime;
+			const std::chrono::milliseconds elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - oldTime;
+			if(elapsedTime >= aDuration) return std::future_status::timeout;
+			aDuration -= elapsedTime;
 		}
-		return std::future_status::timeout;
+		return std::future_status::ready;
 	}
 
 	std::future_status task_group::wait_until_ms(std::chrono::milliseconds aDuration) {
