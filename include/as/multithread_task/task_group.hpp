@@ -116,15 +116,13 @@ namespace as {
 		void schedule(task_dispatcher&, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM);
 
 		template<class R, class P>
-		std::future_status wait_for(const std::chrono::duration<R, P>& aPeriod) {
-			//! \todo Implement
-			return std::future_status::timeout;
+		inline std::future_status wait_for(const std::chrono::duration<R,P>& aPeriod) {
+			return wait_for_ms(std::chrono::duration_cast<std::chrono::milliseconds,R,P>(aPeriod));
 		}
 
 		template<class R, class P>
-		std::future_status wait_until(const std::chrono::duration<R, P>& aPeriod) {
-			//! \todo Implement
-			return std::future_status::timeout;
+		inline std::future_status wait_until(const std::chrono::duration<R,P>& aPeriod) {
+			return wait_until(std::chrono::duration_cast<std::chrono::milliseconds,R,P>(aPeriod));
 		}
 
 		template<class T>
