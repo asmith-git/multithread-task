@@ -20,31 +20,73 @@
 #include <memory>
 
 namespace as {
+	/*!
+		\brief Base interface for implemented task-based parallel code.
+		\date 19th January 2017
+		\author Adam Smith
+	*/
 	class task_interface : public std::enable_shared_from_this<task_interface> {
 	public:
 		friend class task_controller;
 		friend class task_dispatcher;
 
-		enum state {
-			STATE_INITIALISED,
-			STATE_EXECUTING,
-			STATE_PAUSED,
-			STATE_COMPLETE
+		enum state {				//!< Describes the current execution state of the task.
+			STATE_INITIALISED,		//!< The task has been initialised and is waiting to be executed.
+			STATE_EXECUTING,		//!< The task is currently executing.
+			STATE_PAUSED,			//!< The task has been paused and is waiting to resume execution.
+			STATE_COMPLETE			//!< The task has completed its execution.
 		};
 	private:
-		state mState;
-		uint8_t mPauseLocation;
+		state mState;				//!< The current state of the task
+		uint8_t mPauseLocation;		//!< The location at which the task was paused
 	protected:
-		//virtual void on_queue(task_controller&, uint8_t) = 0;
+		/*!
+			\brief Called when the task is being executed.
+			\detail Implement the main behaviour of the function here.
+			If pausing is used then this function should simply call on_resume instead.
+			\param aController The controller for the dispatcher responsible for the current execution.
+			\see on_resume
+		*/
 		virtual void on_execute(task_controller&) = 0;
+		
+		/*!
+			\brief Called when the task resumes execution from being paused.
+			\detail Implement the main behaviour of the function here if pauseing is used.
+			\param aController The controller for the dispatcher responsible for the current execution.
+		*/
 		virtual void on_resume(task_controller&, uint8_t) = 0;
+		
+		/*!
+			\brief Return the address of the std::promise<?> object associated with this task's execution.
+			\return The promise's address.
+		*/
 		virtual void* get_promise() = 0;
+		
+		/*!
+			\brief Pass a caught exception to the std::promise<?> object associated with this task's execution.
+		*/
 		virtual void set_exception(std::exception_ptr) = 0;
 	public:
+		/*!
+			\brief Create a new task.
+		*/
 		task_interface();
+		
+		/*!
+			\brief Destroy the task.
+		*/
 		virtual ~task_interface();
 
+		/*!
+			\brief Return the current state of this task.
+			\return The state.
+		*/
 		state get_state() const;
+		
+		/*!
+			\brief Check if this paused task should resume execution.
+			\return True if the task should resume, false if the task should remain paused.
+		*/
 		virtual bool should_resume() const;
 	};
 }
