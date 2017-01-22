@@ -27,7 +27,6 @@ namespace as {
 
 			virtual void wait() = 0;
 			virtual std::future_status wait_for(const std::chrono::milliseconds&) = 0;
-			virtual std::future_status wait_until(const std::chrono::milliseconds&) = 0;
 			virtual void set_return(void*) = 0;
 			virtual void schedule(task_dispatcher&, task_dispatcher::priority) = 0;
 		};
@@ -53,12 +52,6 @@ namespace as {
 
 			std::future_status wait_for(const std::chrono::milliseconds& aDuration) override {
 				const std::future_status tmp = mFuture.wait_for(aDuration);
-				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
-				return tmp;
-			}
-
-			std::future_status wait_until(const std::chrono::milliseconds& aDuration) override {
-				const std::future_status tmp = mFuture.wait_until(aDuration);
 				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
 				return tmp;
 			}
@@ -90,10 +83,6 @@ namespace as {
 
 			std::future_status wait_for(const std::chrono::milliseconds& aDuration) override {
 				return mFuture.wait_for(aDuration);
-			}
-
-			std::future_status wait_until(const std::chrono::milliseconds& aDuration) override {
-				return std::future_status::timeout; // mFuture.wait_until(aDuration);
 			}
 
 			void set_return(void* aPtr) override {
