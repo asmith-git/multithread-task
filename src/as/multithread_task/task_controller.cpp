@@ -20,33 +20,6 @@ namespace as {
 
 	}
 
-	void task_controller::execute(task_interface& aTask) throw() {
-		switch(aTask.mState) {
-		case task_interface::STATE_INITIALISED:
-			try{
-				aTask.mState = task_interface::STATE_EXECUTING;
-				aTask.on_execute(*this);
-				// If the task hasn't been paused
-				if(aTask.mState == task_interface::STATE_EXECUTING) aTask.mState = task_interface::STATE_COMPLETE;
-			}catch(std::exception&) {
-				aTask.set_exception(std::current_exception());
-				aTask.mState = task_interface::STATE_COMPLETE;
-			}
-			break;
-		case task_interface::STATE_PAUSED:
-			try{
-				aTask.mState = task_interface::STATE_EXECUTING;
-				aTask.on_resume(*this, aTask.mPauseLocation);
-				// If the task hasn't been paused
-				if (aTask.mState == task_interface::STATE_EXECUTING) aTask.mState = task_interface::STATE_COMPLETE;
-			}catch(std::exception&) {
-				aTask.set_exception(std::current_exception());
-				aTask.mState = task_interface::STATE_COMPLETE;
-			}
-			break;
-		}
-	}
-
 	bool task_controller::pause(task_interface& aTask, uint8_t aLocation) throw() {
 		if(aTask.mState != task_interface::STATE_EXECUTING) return false;
 		if(on_pause(aTask)) {

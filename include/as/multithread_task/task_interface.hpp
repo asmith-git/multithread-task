@@ -88,6 +88,12 @@ namespace as {
 			\return True if the task should resume, false if the task should remain paused.
 		*/
 		virtual bool should_resume() const;
+
+		/*!
+			\brief Start or resume execution of this task.
+			\param aController The controller for the dispatcher responsible for the current execution.
+		*/
+		void execute(task_controller&) throw();
 	};
 }
 

@@ -26,7 +26,6 @@ namespace as {
 	public:
 		virtual ~task_controller();
 		
-		void execute(task_interface&) throw();
 		bool pause(task_interface&, uint8_t) throw();
 		bool cancel(task_interface&) throw();
 		bool reschedule(task_interface&, task_dispatcher::priority) throw();

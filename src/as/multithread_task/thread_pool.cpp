@@ -132,7 +132,7 @@ namespace as {
 			mTasksLock.lock();
 			task.swap(pop_task());
 			mTasksLock.unlock();
-			if(task) controller.execute(*task);
+			if(task) task->execute(controller);
 
 			// Check if there are more tasks before waiting again
 			do {
@@ -140,7 +140,7 @@ namespace as {
 				mTasksLock.lock();
 				task.swap(pop_task());
 				mTasksLock.unlock();
-				if(task) controller.execute(*task);
+				if(task) task->execute(controller);
 			}while(task);
 		}
 	}

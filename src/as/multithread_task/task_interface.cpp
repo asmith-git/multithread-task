@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "as/multithread_task/task_interface.hpp"
+#include "as/multithread_task/task_controller.hpp"
 
 namespace as {
 	// task_interface
@@ -31,5 +32,32 @@ namespace as {
 
 	bool task_interface::should_resume() const {
 		return true;
+	}
+
+	void task_interface::execute(task_controller& aController) throw() {
+		switch(mState) {
+		case STATE_INITIALISED:
+			try{
+				mState = STATE_EXECUTING;
+				on_execute(aController);
+				// If the task hasn't been paused
+				if(mState == STATE_EXECUTING) mState = STATE_COMPLETE;
+			}catch(std::exception&) {
+				set_exception(std::current_exception());
+				mState = STATE_COMPLETE;
+			}
+			break;
+		case STATE_PAUSED:
+			try{
+				mState = STATE_EXECUTING;
+				on_resume(aController, mPauseLocation);
+				// If the task hasn't been paused
+				if (mState == STATE_EXECUTING) mState = STATE_COMPLETE;
+			}catch(std::exception&) {
+				set_exception(std::current_exception());
+				mState = STATE_COMPLETE;
+			}
+			break;
+		}
 	}
 }
