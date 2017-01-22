@@ -93,7 +93,7 @@ namespace as {
 			}
 
 			std::future_status wait_until(const std::chrono::milliseconds& aDuration) override {
-				return mFuture.wait_until(aDuration);
+				return std::future_status::timeout; // mFuture.wait_until(aDuration);
 			}
 
 			void set_return(void* aPtr) override {
