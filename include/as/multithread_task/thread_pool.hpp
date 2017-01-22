@@ -23,22 +23,46 @@
 #include "task_dispatcher.hpp"
 
 namespace as {
+
+	/*!
+		\brief A multi-thread based task dispatcher.
+		\date 19th January 2017
+		\author Adam Smith
+	*/
 	class thread_pool : public task_dispatcher {
 	private:
-		std::condition_variable mTaskScheduled;
-		std::vector<std::thread> mThreads;
-		std::deque<task_ptr> mTasks[priority::PRIORITY_HIGH + 1];
-		std::mutex mTasksLock;
-		priority mHighPriority;
-		bool mExit;
+		std::condition_variable mTaskScheduled;						//!< Notifies when a task is scheduled or the pool is being deleted.
+		std::vector<std::thread> mThreads;							//!< The worker threads.
+		std::deque<task_ptr> mTasks[priority::PRIORITY_HIGH + 1];	//!< The tasks that are scheduled.
+		std::mutex mTasksLock;										//!< Thread-safe access to mTasks.
+		priority mHighPriority;										//!< The highest priority rating that is currently scheduled.
+		bool mExit;													//!< Set to true when the destructor is called.
 	private:
+		/*!
+			\brief The task dispatch and execution loop.
+			\detail Called once on each worker thread.
+		*/
 		void worker_function();
 	protected:
 		// Inherited from task_dispatcher
 		void schedule_task(task_ptr, priority) override;
 	public:
+		/*!
+			\brief Create a new thread_pool.
+			\detail The number of worker threads will be equal to the reported hardware capability.
+		*/
 		thread_pool();
+
+		/*!
+			\brief Create a new thread_pool.
+			\param aThreads The number of worker threads.
+		*/
 		thread_pool(size_t);
+
+		/*!
+			\brief Destroy the pool and join the worker threads.
+			\detail Any still scheduled tasks will not be executed.
+		*/
 		~thread_pool();
 	};
 }
