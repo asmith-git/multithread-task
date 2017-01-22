@@ -20,15 +20,35 @@
 #include "task_interface.hpp"
 
 namespace as {
+
+	/*!
+		\brief Interface for scheduling tasks for parallel execution.
+		\date 19th January 2017
+		\author Adam Smith
+	*/
 	class task_dispatcher {
 	public:
-		typedef implementation::task_priority priority;
-		typedef std::shared_ptr<task_interface> task_ptr;
+		typedef implementation::task_priority priority;		//!< Defines priority levels for scheduled tasks.
+		typedef std::shared_ptr<task_interface> task_ptr;	//!< Smart pointer containing a task.
 	protected:
+		/*!
+			\brief Schedule a task.
+			\param aTask The task to schedule.
+			\param aPriority The priority to schedule the task with.
+		*/
 		virtual void schedule_task(task_ptr, priority) = 0;
 	public:
+		/*!
+			\brief Destroy the dispatcher.
+		*/
 		virtual ~task_dispatcher() {}
 
+		/*!
+			\brief Schedule a task.
+			\param aTask The task to schedule.
+			\param aPriority The priority to schedule the task with.
+			\tparam R The return type of the task (the type of the std::promise<?> object).
+		*/
 		template<class R>
 		std::future<R> schedule(task_ptr aTask, priority aPriority = PRIORITY_MEDIUM) {
 			schedule_task(aTask, aPriority);
