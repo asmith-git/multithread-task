@@ -35,29 +35,24 @@ namespace as {
 	}
 
 	void task_interface::execute(task_controller& aController) throw() {
-		switch(mState) {
-		case STATE_INITIALISED:
-			try{
-				mState = STATE_EXECUTING;
-				on_execute(aController);
-				// If the task hasn't been paused
-				if(mState == STATE_EXECUTING) mState = STATE_COMPLETE;
-			}catch(std::exception&) {
-				set_exception(std::current_exception());
-				mState = STATE_COMPLETE;
-			}
-			break;
-		case STATE_PAUSED:
-			try{
+		try{
+			switch(mState) {
+			case STATE_INITIALISED:
 				mState = STATE_EXECUTING;
 				on_resume(aController, mPauseLocation);
 				// If the task hasn't been paused
 				if (mState == STATE_EXECUTING) mState = STATE_COMPLETE;
-			}catch(std::exception&) {
-				set_exception(std::current_exception());
-				mState = STATE_COMPLETE;
+				break;
+			case STATE_PAUSED:
+				mState = STATE_EXECUTING;
+				on_resume(aController, mPauseLocation);
+				// If the task hasn't been paused
+				if (mState == STATE_EXECUTING) mState = STATE_COMPLETE;
+				break;
 			}
-			break;
+		}catch(std::exception&) {
+			set_exception(std::current_exception());
+			mState = STATE_COMPLETE;
 		}
 	}
 }
