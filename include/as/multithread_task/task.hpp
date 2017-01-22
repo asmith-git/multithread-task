@@ -20,11 +20,23 @@
 
 namespace as {
 
+	/*!
+		\brief A task with a return value.
+		\detail A specialisation exits for void returns.
+		\tparam T The return type of the task.
+		\date 19th January 2017
+		\author Adam Smith
+	*/
 	template<class T>
 	class task : public task_interface{
 	private:
-		std::promise<T> mPromise;
+		std::promise<T> mPromise;	//!< The promise that notifies when the task is completed.
 	protected:
+		/*!
+			\brief Set the return value of the task at the end of execution.
+			\detail Calling more than once per execution cycle is undefined behaviour.
+			\param aValue The return value.
+		*/
 		void set_return(const T& aValue) {
 			mPromise.set_value(aValue);
 		}
