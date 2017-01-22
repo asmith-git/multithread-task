@@ -28,9 +28,8 @@ namespace as {
 			virtual void wait() = 0;
 			virtual std::future_status wait_for(const std::chrono::milliseconds&) = 0;
 			virtual std::future_status wait_until(const std::chrono::milliseconds&) = 0;
-			virtual void set_future(void*) = 0;
 			virtual void set_return(void*) = 0;
-			virtual task_dispatcher::task_ptr get_task() const = 0;
+			virtual void schedule(task_dispatcher&) = 0;
 		};
 
 		template<class T>
@@ -40,7 +39,8 @@ namespace as {
 			std::future<T> mFuture;
 			T* mReturn;
 		public:
-			task_wrapper_2() :
+			task_wrapper_2(std::shared_ptr<task<T>> aTask) :
+				mTask(aTask),
 				mReturn(nullptr)
 			{}
 
@@ -51,28 +51,24 @@ namespace as {
 				if(mReturn) *mReturn = mFuture.get();
 			}
 
-			std::future_status wait_for(const std::chrono::milliseconds& aDuration) {
+			std::future_status wait_for(const std::chrono::milliseconds& aDuration) override {
 				const std::future_status tmp = mFuture.wait_for(aDuration);
 				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
 				return tmp;
 			}
 
-			std::future_status wait_until(const std::chrono::milliseconds& aDuration) {
+			std::future_status wait_until(const std::chrono::milliseconds& aDuration) override {
 				const std::future_status tmp = mFuture.wait_until(aDuration);
 				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
 				return tmp;
 			}
 
-			void set_future(void* aFuture) {
-				mFuture = *static_cast<std::future<T>*>(aFuture);
-			}
-
-			void set_return(void* aPtr) {
+			void set_return(void* aPtr) override {
 				mReturn = static_cast<T*>(aPtr);
 			}
-
-			task_dispatcher::task_ptr get_task() const {
-				return mTask;
+			
+			void schedule(task_dispatcher& aTask) override {
+				mFuture = aTask.schedule<T>(mTask);
 			}
 		};
 
@@ -82,30 +78,30 @@ namespace as {
 			task_dispatcher::task_ptr mTask;
 			std::future<void> mFuture;
 		public:
+			task_wrapper_2(task_dispatcher::task_ptr aTask) :
+				mTask(aTask)
+			{}
+
 			// Inherited from task_wrapper
 
 			void wait() override {
 				mFuture.wait();
 			}
 
-			std::future_status wait_for(const std::chrono::milliseconds& aDuration) {
+			std::future_status wait_for(const std::chrono::milliseconds& aDuration) override {
 				return mFuture.wait_for(aDuration);
 			}
 
-			std::future_status wait_until(const std::chrono::milliseconds& aDuration) {
+			std::future_status wait_until(const std::chrono::milliseconds& aDuration) override {
 				return mFuture.wait_until(aDuration);
 			}
 
-			void set_future(void* aFuture) {
-				mFuture = *static_cast<std::future<void>*>(aFuture);
-			}
-
-			void set_return(void* aPtr) {
+			void set_return(void* aPtr) override {
 				
 			}
 
-			task_dispatcher::task_ptr get_task() const {
-				return mTask;
+			void schedule(task_dispatcher& aTask) override {
+				mFuture = aTask.schedule<void>(mTask);
 			}
 		};
 
@@ -113,11 +109,11 @@ namespace as {
 
 		std::future_status wait_for_ms(const std::chrono::milliseconds&);
 		std::future_status wait_until_ms(const std::chrono::milliseconds&);
+		void add_internal(task_dispatcher::task_ptr);
 	public:
 		~task_group();
 
 		void wait();
-		void add(task_dispatcher::task_ptr);
 		void schedule(task_dispatcher&);
 
 		template<class R, class P>
@@ -134,7 +130,9 @@ namespace as {
 
 		template<class T>
 		void add(std::shared_ptr<task<T>> aTask, T* aReturn = nullptr) {
-			//! \todo Implement
+			std::shared_ptr<task_wrapper_2<T>> task(new task_wrapper_2<T>(aTask));
+			task->set_return(aReturn);
+			add_internal(aTask);
 		}
 	};
 }
