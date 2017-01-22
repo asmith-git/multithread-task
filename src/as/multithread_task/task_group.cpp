@@ -26,8 +26,8 @@ namespace as {
 		mWrappers.clear();
 	}
 
-	void task_group::schedule(task_dispatcher& aDispatcher) {
-		for(std::shared_ptr<task_wrapper>& i : mWrappers) i->schedule(aDispatcher);
+	void task_group::schedule(task_dispatcher& aDispatcher, task_dispatcher::priority aPriority) {
+		for(std::shared_ptr<task_wrapper>& i : mWrappers) i->schedule(aDispatcher, aPriority);
 	}
 
 	std::future_status task_group::wait_for_ms(const std::chrono::milliseconds& aDuration) {

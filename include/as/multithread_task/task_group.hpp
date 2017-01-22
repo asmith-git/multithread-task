@@ -29,17 +29,17 @@ namespace as {
 			virtual std::future_status wait_for(const std::chrono::milliseconds&) = 0;
 			virtual std::future_status wait_until(const std::chrono::milliseconds&) = 0;
 			virtual void set_return(void*) = 0;
-			virtual void schedule(task_dispatcher&) = 0;
+			virtual void schedule(task_dispatcher&, task_dispatcher::priority) = 0;
 		};
 
 		template<class T>
 		class task_wrapper_2 : public task_wrapper {
 		private:
-			std::shared_ptr<task<T>> mTask;
+			task_dispatcher::task_ptr mTask;
 			std::future<T> mFuture;
 			T* mReturn;
 		public:
-			task_wrapper_2(std::shared_ptr<task<T>> aTask) :
+			task_wrapper_2(task_dispatcher::task_ptr aTask) :
 				mTask(aTask),
 				mReturn(nullptr)
 			{}
@@ -67,8 +67,8 @@ namespace as {
 				mReturn = static_cast<T*>(aPtr);
 			}
 			
-			void schedule(task_dispatcher& aTask) override {
-				mFuture = aTask.schedule<T>(mTask);
+			void schedule(task_dispatcher& aTask, task_dispatcher::priority aPriority) override {
+				mFuture = aTask.schedule<T>(mTask, aPriority);
 			}
 		};
 
@@ -100,8 +100,8 @@ namespace as {
 				
 			}
 
-			void schedule(task_dispatcher& aTask) override {
-				mFuture = aTask.schedule<void>(mTask);
+			void schedule(task_dispatcher& aTask, task_dispatcher::priority aPriority) override {
+				mFuture = aTask.schedule<void>(mTask, aPriority);
 			}
 		};
 
@@ -113,7 +113,7 @@ namespace as {
 		~task_group();
 
 		void wait();
-		void schedule(task_dispatcher&);
+		void schedule(task_dispatcher&, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM);
 
 		template<class R, class P>
 		std::future_status wait_for(const std::chrono::duration<R, P>& aPeriod) {
@@ -128,7 +128,7 @@ namespace as {
 		}
 
 		template<class T>
-		void add(std::shared_ptr<task<T>> aTask, T* aReturn = nullptr) {
+		void add(task_dispatcher::task_ptr aTask, T* aReturn = nullptr) {
 			std::shared_ptr<task_wrapper_2<T>> task(new task_wrapper_2<T>(aTask));
 			task->set_return(aReturn);
 			mWrappers.push_back(task);
