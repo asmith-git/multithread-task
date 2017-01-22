@@ -33,6 +33,82 @@ namespace as {
 			virtual task_dispatcher::task_ptr get_task() const = 0;
 		};
 
+		template<class T>
+		class task_wrapper_2 : public task_wrapper {
+		private:
+			std::shared_ptr<task<T>> mTask;
+			std::future<T> mFuture;
+			T* mReturn;
+		public:
+			task_wrapper_2() :
+				mReturn(nullptr)
+			{}
+
+			// Inherited from task_wrapper
+
+			void wait() override {
+				mFuture.wait();
+				if(mReturn) *mReturn = mFuture.get();
+			}
+
+			std::future_status wait_for(const std::chrono::milliseconds& aDuration) {
+				const std::future_status tmp = mFuture.wait_for(aDuration);
+				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
+				return tmp;
+			}
+
+			std::future_status wait_until(const std::chrono::milliseconds& aDuration) {
+				const std::future_status tmp = mFuture.wait_until(aDuration);
+				if(tmp == std::future_status::ready && mReturn) *mReturn = mFuture.get();
+				return tmp;
+			}
+
+			void set_future(void* aFuture) {
+				mFuture = *static_cast<std::future<T>*>(aFuture);
+			}
+
+			void set_return(void* aPtr) {
+				mReturn = static_cast<T*>(aPtr);
+			}
+
+			task_dispatcher::task_ptr get_task() const {
+				return mTask;
+			}
+		};
+
+		template<>
+		class task_wrapper_2<void> : public task_wrapper {
+		private:
+			task_dispatcher::task_ptr mTask;
+			std::future<void> mFuture;
+		public:
+			// Inherited from task_wrapper
+
+			void wait() override {
+				mFuture.wait();
+			}
+
+			std::future_status wait_for(const std::chrono::milliseconds& aDuration) {
+				return mFuture.wait_for(aDuration);
+			}
+
+			std::future_status wait_until(const std::chrono::milliseconds& aDuration) {
+				return mFuture.wait_until(aDuration);
+			}
+
+			void set_future(void* aFuture) {
+				mFuture = *static_cast<std::future<void>*>(aFuture);
+			}
+
+			void set_return(void* aPtr) {
+				
+			}
+
+			task_dispatcher::task_ptr get_task() const {
+				return mTask;
+			}
+		};
+
 		std::vector<std::shared_ptr<task_wrapper>> mWrappers;
 
 		std::future_status wait_for_ms(const std::chrono::milliseconds&);
