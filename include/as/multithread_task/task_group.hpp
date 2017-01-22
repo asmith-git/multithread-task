@@ -109,7 +109,6 @@ namespace as {
 
 		std::future_status wait_for_ms(const std::chrono::milliseconds&);
 		std::future_status wait_until_ms(const std::chrono::milliseconds&);
-		void add_internal(task_dispatcher::task_ptr);
 	public:
 		~task_group();
 
@@ -132,7 +131,7 @@ namespace as {
 		void add(std::shared_ptr<task<T>> aTask, T* aReturn = nullptr) {
 			std::shared_ptr<task_wrapper_2<T>> task(new task_wrapper_2<T>(aTask));
 			task->set_return(aReturn);
-			add_internal(aTask);
+			mWrappers.push_back(task);
 		}
 	};
 }
