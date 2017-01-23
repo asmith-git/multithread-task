@@ -19,109 +19,47 @@
 #include "task.hpp"
 
 namespace as {
+	template<class T, class F, class L1, class L2>
+	class parallel_for_task : public task<void> {
+	private:
+		const L1 mCondition;
+		const L2 mIncrement;
+		const F mFunction;
+		const T mBegin;
+		const T mEnd;
+		T mIndex;
+	public:
+		parallel_for_task(const T aBegin, const T aEnd, const F aFunction, const L1 aCondition, const L2 aIncrement) :
+			mCondition(aCondition),
+			mIncrement(aIncrement),
+			mFunction(aFunction),
+			mBegin(aBegin),
+			mEnd(aEnd),
+			mIndex(aBegin)
+		{}
+
+		void on_execute(as::task_controller& aController) override {
+			mIndex = mBegin;
+			on_resume(aController, 0);
+		}
+
+		void on_resume(as::task_controller& aController, uint8_t aLocation) override {
+			while (mCondition(mIndex, mEnd)) {
+				mFunction(mIndex);
+				mIncrement(mIndex);
+			}
+			set_return();
+		}
+	};
+
 	namespace implementation {
-		template<class I, class F>
-		class for_less_than_task : public task<void> {
-		private:
-			const I mMin;
-			const I mMax;
-			const F mFunction;
-		protected:
-			// Inherited from task
-			void on_execute(task_controller&) override {
-				for(I i = mMin; i < mMax; ++i) mFunction(i);
-				set_return();
-			}
 
-			void on_resume(as::task_controller& aController, uint8_t) override {
-				on_execute(aController);
-			}
-		public:
-			for_less_than_task(I aMin, I aMax, F aFunction) :
-				mMin(aMin),
-				mMax(aMax),
-				mFunction(aFunction)
-			{}
-		};
-
-		template<class I, class F>
-		class for_less_than_equals_task : public task<void> {
-		private:
-			const I mMin;
-			const I mMax;
-			const F mFunction;
-		protected:
-			// Inherited from task
-			void on_execute(task_controller&) override {
-				for(I i = mMin; i <= mMax; ++i) mFunction(i);
-				set_return();
-			}
-
-			void on_resume(as::task_controller& aController, uint8_t) override {
-				on_execute(aController);
-			}
-		public:
-			for_less_than_equals_task(I aMin, I aMax, F aFunction) :
-				mMin(aMin),
-				mMax(aMax),
-				mFunction(aFunction)
-			{}
-		};
-
-		template<class I, class F>
-		class for_greater_than_task : public task<void> {
-		private:
-			const I mMin;
-			const I mMax;
-			const F mFunction;
-		protected:
-			// Inherited from task
-			void on_execute(task_controller&) override {
-				for(I i = mMin; i > mMax; --i) mFunction(i);
-				set_return();
-			}
-
-			void on_resume(as::task_controller& aController, uint8_t) override {
-				on_execute(aController);
-			}
-		public:
-			for_greater_than_task(I aMin, I aMax, F aFunction) :
-				mMin(aMin),
-				mMax(aMax),
-				mFunction(aFunction)
-			{}
-		};
-
-		template<class I, class F>
-		class for_greater_than_equals_task : public task<void> {
-		private:
-			const I mMin;
-			const I mMax;
-			const F mFunction;
-		protected:
-			// Inherited from task
-			void on_execute(task_controller&) override {
-				for(I i = mMin; i >= mMax; --i) mFunction(i);
-				set_return();
-			}
-
-			void on_resume(as::task_controller& aController, uint8_t) override {
-				on_execute(aController);
-			}
-		public:
-			for_greater_than_equals_task(I aMin, I aMax, F aFunction) :
-				mMin(aMin),
-				mMax(aMax),
-				mFunction(aFunction)
-			{}
-		};
-
-		template<class V, class F, class T, class I, class I2>
-		void parallel_for(task_dispatcher& aDispatcher, V aMin, V aMax, F aFunction, size_t aBlocks, task_dispatcher::priority aPriority, I aMinFn, I2 aMaxFn) {
+		template<class V, class F, class I, class I2, class L1, class L2>
+		void parallel_for(task_dispatcher& aDispatcher, V aMin, V aMax, F aFunction, size_t aBlocks, task_dispatcher::priority aPriority, I aMinFn, I2 aMaxFn, L1 aCondition, L2 aIncrement) {
 			std::future<void>* const futures = new std::future<void>[aBlocks];
 			try{
 				for(size_t i = 0; i < aBlocks; ++i) {
-					task_dispatcher::task_ptr task(new T(aMinFn(i), aMaxFn(i), aFunction));
+					task_dispatcher::task_ptr task(new parallel_for_task<V,F,L1,L2>(aMinFn(i), aMaxFn(i), aFunction, aCondition, aIncrement));
 					futures[i] = aDispatcher.schedule<void>(task, aPriority);
 				}
 				for(size_t i = 0; i < aBlocks; ++i) futures[i].get();
@@ -135,8 +73,8 @@ namespace as {
 	}
 
 	template<class I, class F>
-	void parallel_for_less_than(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for<I, F, implementation::for_less_than_task<I,F>>(
+	void parallel_for_less_than(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::priority::PRIORITY_MEDIUM) {
+		implementation::parallel_for<I, F>(
 			aDispatcher,
 			aMin,
 			aMax,
@@ -152,13 +90,15 @@ namespace as {
 				const I range = aMax - aMin;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : sub_range * (i + 1);
-			}
+			},
+			[](const I a, const I b)->bool{ return a < b; },
+			[](I& i)->void { ++i; }
 		);
 	}
 
 	template<class I, class F>
-	void parallel_for_less_than_equals(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for<I, F, implementation::for_less_than_equals_task<I, F>>(
+	void parallel_for_less_than_equals(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::priority::PRIORITY_MEDIUM) {
+		implementation::parallel_for<I, F>(
 			aDispatcher,
 			aMin,
 			aMax,
@@ -174,13 +114,15 @@ namespace as {
 				const I range = aMax - aMin;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : sub_range * (i + 1);
-			}
+			},
+			[](const I a, const I b)->bool{ return a <= b; },
+			[](I& i)->void { ++i; }
 		);
 	}
 
 	template<class I, class F>
-	void parallel_for_greater_than(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for<I, F, implementation::for_greater_than_task<I, F>>(
+	void parallel_for_greater_than(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::priority::PRIORITY_MEDIUM) {
+		implementation::parallel_for<I, F>(
 			aDispatcher,
 			aMin,
 			aMax,
@@ -196,13 +138,15 @@ namespace as {
 				const I range = aMin - aMax;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
-			}
+			},
+			[](const I a, const I b)->bool{ return a > b; },
+			[](I& i)->void { --i; }
 		);
 	}
 
 	template<class I, class F>
-	void parallel_for_greater_than_equals(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::PRIORITY_MEDIUM) {
-		implementation::parallel_for<I, F, implementation::for_greater_than_equals_task<I, F>>(
+	void parallel_for_greater_than_equals(task_dispatcher& aDispatcher, I aMin, I aMax, F aFunction, uint8_t aBlocks = 4, task_dispatcher::priority aPriority = task_dispatcher::priority::PRIORITY_MEDIUM) {
+		implementation::parallel_for<I, F>(
 			aDispatcher,
 			aMin,
 			aMax,
@@ -218,7 +162,9 @@ namespace as {
 				const I range = aMin - aMax;
 				const I sub_range = range / aBlocks;
 				return i + 1 == aBlocks ? aMax : aMin - (sub_range * (i + 1));
-			}
+			},
+			[](const I a, const I b)->bool{ return a >= b; },
+			[](I& i)->void { --i; }
 		);
 	}
 }
