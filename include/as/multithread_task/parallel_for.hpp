@@ -44,7 +44,10 @@ namespace as {
 		}
 
 		void on_resume(as::task_controller& aController, uint8_t aLocation) override {
-			while (mCondition(mIndex, mEnd)) {
+			while(mCondition(mIndex, mEnd)) {
+#ifndef ASMITH_DISABLE_PARALLEL_FOR_PAUSE
+				if(is_pause_requested()) pause(aController, aLocation);
+#endif
 				mFunction(mIndex);
 				mIncrement(mIndex);
 			}
