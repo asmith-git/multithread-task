@@ -78,4 +78,15 @@ namespace as {
 		if(mState != task_interface::STATE_INITIALISED) return false;
 		return aController.on_reschedule(*this, aPriority);
 	}
+
+	bool task_interface::reinitialise() throw() {
+		if(mState != task_interface::STATE_COMPLETE) return false;
+		const bool tmp = on_reinitialise();
+		if(tmp) {
+			mState = STATE_INITIALISED;
+			mPauseLocation = 0;
+			return true;
+		}
+		return false;
+	}
 }

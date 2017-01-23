@@ -50,6 +50,11 @@ namespace as {
 		void set_exception(std::exception_ptr aException) override {
 			mPromise.set_exception(aException);
 		}
+
+		virtual bool on_reinitialise() override {
+			mPromise = std::promise<T>();
+			return true;
+		}
 	public:
 		virtual ~task() {}
 	};
@@ -71,6 +76,11 @@ namespace as {
 
 		void set_exception(std::exception_ptr aException) override {
 			mPromise.set_exception(aException);
+		}
+
+		virtual bool on_reinitialise() override {
+			mPromise = std::promise<void>();
+			return true;
 		}
 	public:
 		virtual ~task() {}

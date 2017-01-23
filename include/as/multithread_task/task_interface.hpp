@@ -65,6 +65,11 @@ namespace as {
 			\see pause
 		*/
 		virtual void on_resume(task_controller&, uint8_t) = 0;
+
+		/*!
+			\brief Reset a completed task to it's initialised state, allowing it to be executed again.
+		*/
+		virtual bool on_reinitialise() = 0;
 		
 		/*!
 			\brief Return the address of the std::promise<?> object associated with this task's execution.
@@ -129,6 +134,11 @@ namespace as {
 			\param aController The controller for the dispatcher responsible for the current execution.
 		*/
 		void execute(task_controller&) throw();
+
+		/*!
+			\brief Reset a completed task to it's initialised state, allowing it to be executed again.
+		*/
+		bool reinitialise();
 	};
 }
 
