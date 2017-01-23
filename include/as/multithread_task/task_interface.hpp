@@ -47,6 +47,7 @@ namespace as {
 	private:
 		state mState;				//!< The current state of the task
 		uint8_t mPauseLocation;		//!< The location at which the task was paused
+		bool mPauseRequest;			//!< Set to true if a pause is requested externally.
 	protected:
 		/*!
 			\brief Called when the task is being executed.
@@ -106,6 +107,8 @@ namespace as {
 			\return True if the task was sucessfully rescheduled.
 		*/
 		bool reschedule(task_controller&, implementation::task_priority) throw();
+
+		bool is_pause_requested() const throw();
 	public:
 		/*!
 			\brief Create a new task.
@@ -139,6 +142,8 @@ namespace as {
 			\brief Reset a completed task to it's initialised state, allowing it to be executed again.
 		*/
 		bool reinitialise();
+
+		void request_pause() throw();
 	};
 }
 

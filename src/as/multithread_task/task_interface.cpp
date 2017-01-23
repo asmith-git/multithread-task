@@ -19,7 +19,9 @@ namespace as {
 	// task_interface
 
 	task_interface::task_interface() :
-		mState(STATE_INITIALISED)
+		mState(STATE_INITIALISED),
+		mPauseLocation(0),
+		mPauseRequest(false)
 	{}
 
 	task_interface::~task_interface() {
@@ -60,6 +62,7 @@ namespace as {
 
 	bool task_interface::pause(task_controller& aController, uint8_t aLocation) throw() {
 		if(mState != task_interface::STATE_EXECUTING) return false;
+		mPauseRequest = false;
 		if(aController.on_pause(*this)) {
 			mState = task_interface::STATE_PAUSED;
 			mPauseLocation = aLocation;
@@ -88,5 +91,13 @@ namespace as {
 			return true;
 		}
 		return false;
+	}
+
+	bool task_interface::is_pause_requested() const throw() {
+		return mPauseRequest;
+	}
+
+	void task_interface::request_pause() throw() {
+		if(mState == STATE_EXECUTING) mPauseRequest = true;
 	}
 }
