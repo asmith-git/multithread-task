@@ -108,6 +108,11 @@ namespace as {
 		*/
 		bool reschedule(task_controller&, implementation::task_priority) throw();
 
+		/*!
+			\brief Check if the task has externally been requested to pause.
+			\detail This will usually be either by the task_dispatcher, or the code that initially created the task.
+			\return True if a pause has been requested.
+		*/
 		bool is_pause_requested() const throw();
 	public:
 		/*!
@@ -143,6 +148,9 @@ namespace as {
 		*/
 		bool reinitialise();
 
+		/*!
+			\brief Request that the task pauses itself.
+		*/
 		void request_pause() throw();
 	};
 }

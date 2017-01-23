@@ -88,6 +88,7 @@ namespace as {
 		if(tmp) {
 			mState = STATE_INITIALISED;
 			mPauseLocation = 0;
+			mPauseRequest = false;
 			return true;
 		}
 		return false;
